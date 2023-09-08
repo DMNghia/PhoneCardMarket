@@ -1,0 +1,13 @@
+server:
+  port: 8081
+
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:3306/phonecardmarket
+    username: root
+    password: nghia
+    driver-class-name: com.mysql.cj.jdbc.Driver

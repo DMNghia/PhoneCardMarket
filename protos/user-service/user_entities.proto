@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option java_package = "com.nghia.grpc.entities.user";
+option java_multiple_files = true;
+
+enum Role {
+  USER = 0;
+  ADMIN = 1;
+  STAFF = 2;
+}
+
+message BaseResponse {
+  string code = 1;
+  string status = 2;
+  string message = 3;
+}
+
+message UserInfo {
+  int32 id = 1;
+  string username = 2;
+  string email = 3;
+  bool isEnable = 4;
+  bool isLocked = 5;
+  string createdAt = 6;
+  Role role = 7;
+}
+
+message FindUserByIdRequest {
+  int32 id = 1;
+}
+
+message FindUserByUsernameRequest {
+  string username = 1;
+}
+
+message FindUserResponse {
+  BaseResponse baseResponse = 1;
+  int32 id = 2;
+  string username = 3;
+  string email = 4;
+  bool isEnable = 5;
+  bool isLocked = 6;
+  Role role = 7;
+}

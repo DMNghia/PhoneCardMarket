@@ -1,0 +1,42 @@
+server:
+  port: 8080
+
+spring:
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+
+  config:
+    import: classpath:config/config.properties
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: nghia
+    url: jdbc:mysql://localhost:3306/phonecardmarket
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVER}
+
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: -1
+      retries: 1
+      properties:
+        [request.timeout.ms]: 1
+        [enable.idempotence]: true
+        [max.in.flight.requests.per.connection]: 5
+        [spring.json.add.type.headers]: false
+
+    consumer:
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "com.nghia.userservice.dto"
+
+grpc:
+  server:
+    port: 9090

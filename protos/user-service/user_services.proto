@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "user_entities.proto";
+
+option java_multiple_files = true;
+option java_package = "com.nghia.grpc.services.userService";
+
+service UserService {
+  rpc findUserById(FindUserByIdRequest) returns (FindUserResponse) {};
+  rpc findUserByUsername(FindUserByUsernameRequest) returns (FindUserResponse) {};
+}

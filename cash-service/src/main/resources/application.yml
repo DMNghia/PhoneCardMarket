@@ -1,0 +1,44 @@
+server:
+  port: 8081
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          cash-service-client:
+            provider: user-service
+            client-id: cash-service
+            client-secret: secret
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8081/login/oauth2/code/{registrationId}"
+            scope: openid
+            client-name: cash-service-client
+          cash-service-authorization-code:
+            provider: user-service
+            client-id: cash-service
+            client-secret: secret
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8081/authorized"
+            scope: api.read
+            client-name: cash-service-authorization-code
+        provider:
+          user-service:
+            issuer-uri: http://localhost:8080
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:3306/phonecardmarket
+    username: root
+    password: nghia
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  config:
+    import: classpath:config/local.properties
+
+grpc:
+  server:
+    user-service:
+      port: ${USER_SERVICE_GRPC_PORT}
+    port: 9091
