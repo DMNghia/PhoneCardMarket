@@ -71,9 +71,9 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
     return security.cors().and().csrf().disable()
-//        .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthEntryPoint))
-//        .sessionManagement(
-//            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthEntryPoint))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider())
         .authorizeRequests(auth -> {
           auth.antMatchers(WHITE_LIST).permitAll();
@@ -81,7 +81,7 @@ public class SecurityConfig {
           auth.anyRequest().authenticated();
         })
         .formLogin(Customizer.withDefaults())
-//        .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class)
         .build();
   }
 }
