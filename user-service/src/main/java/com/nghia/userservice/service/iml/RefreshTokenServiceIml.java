@@ -1,7 +1,12 @@
 package com.nghia.userservice.service.iml;
 
+import com.google.gson.Gson;
+import com.nghia.userservice.common.CodeConstant;
+import com.nghia.userservice.common.ResponseType;
 import com.nghia.userservice.dto.RefreshTokenDTO;
 import com.nghia.userservice.dto.response.AuthResponse;
+import com.nghia.userservice.dto.response.BaseResponse;
+import com.nghia.userservice.dto.response.ResponseInfo;
 import com.nghia.userservice.entity.RefreshToken;
 import com.nghia.userservice.entity.User;
 import com.nghia.userservice.exception.TokenRefreshException;
@@ -13,22 +18,25 @@ import com.nghia.userservice.service.RefreshTokenService;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 public class RefreshTokenServiceIml implements RefreshTokenService {
 
   private final UserRepository userRepository;
   private final RefreshTokenRepository refreshTokenRepository;
   private final JwtUtils jwtUtils;
+  private final Gson gson;
 
   public RefreshTokenServiceIml(UserRepository userRepository,
-      RefreshTokenRepository refreshTokenRepository, JwtUtils jwtUtils) {
+      RefreshTokenRepository refreshTokenRepository, JwtUtils jwtUtils, Gson gson) {
     this.userRepository = userRepository;
     this.refreshTokenRepository = refreshTokenRepository;
     this.jwtUtils = jwtUtils;
+    this.gson = gson;
   }
 
   @Override
@@ -54,18 +62,19 @@ public class RefreshTokenServiceIml implements RefreshTokenService {
 
   @Override
   @Transactional
-  public RefreshTokenDTO verifyExpiration(RefreshTokenDTO tokenDTO) {
+  public boolean verifyExpiration(RefreshTokenDTO tokenDTO) {
     if (tokenDTO.getExpiredAt().isBefore(LocalDateTime.now())) {
-      deletedByUser(tokenDTO.getUsername());
-      throw new TokenRefreshException(tokenDTO.getRefreshToken(),
-          "Mã xác thực đã hết hạn vui lòng đăng nhập lại");
+      deletedByToken(tokenDTO.getRefreshToken());
+      log.info("VERIFY EXPIRATION REQUEST:\n{}\n-> SUCCESS: TOKEN WAS EXPIRED", gson.toJson(tokenDTO));
+      return false;
     }
-    return tokenDTO;
+    return true;
   }
 
   @Override
   @Transactional
-  public AuthResponse refreshToken(String refreshTokenRequest) {
+  public BaseResponse<?> refreshToken(String refreshTokenRequest) {
+    log.info("REFRESH TOKEN REQUEST:\n{}\n", refreshTokenRequest);
     RefreshTokenDTO tokenDTO = refreshTokenRepository.findByToken(refreshTokenRequest)
         .map(token -> RefreshTokenDTO.builder()
             .refreshToken(token.getToken())
@@ -75,20 +84,36 @@ public class RefreshTokenServiceIml implements RefreshTokenService {
         .orElseThrow(() -> new TokenRefreshException(refreshTokenRequest,
             "Không tồn tại refresh token này"));
 
-    tokenDTO = verifyExpiration(tokenDTO);
+    boolean isExpired = verifyExpiration(tokenDTO);
+    if (!isExpired) {
+      return BaseResponse.builder()
+          .responseInfo(ResponseInfo.builder()
+              .code(CodeConstant.INVALID_REQUEST_CODE)
+              .status(ResponseType.INVALID_REQUEST.name())
+              .message("Refresh token đã hết hạn vui lòng đăng nhập lại")
+              .build())
+          .content(null)
+          .build();
+    }
 
-    return AuthResponse.builder()
-        .accessToken(jwtUtils.generateToken(tokenDTO.getUsername()))
-        .refreshToken(tokenDTO.getRefreshToken())
-        .tokenType("Bearer")
+    return BaseResponse.builder()
+        .responseInfo(ResponseInfo.builder()
+            .code(CodeConstant.SUCCESS_CODE)
+            .status(ResponseType.SUCCESS.name())
+            .message("Thành công")
+            .build())
+        .content(AuthResponse.builder()
+            .accessToken(jwtUtils.generateToken(tokenDTO.getUsername()))
+            .refreshToken(tokenDTO.getRefreshToken())
+            .tokenType("Bearer")
+            .build())
         .build();
   }
 
   @Override
   @Transactional
-  public int deletedByUser(String username) {
-    Optional<User> user = userRepository.findByUsername(username);
-    return refreshTokenRepository.deleteByUser(user
-        .orElseThrow(() -> new UsernameNotFoundException("Tên đăng nhập không tìm thấy")));
+  public int deletedByToken(String token) {
+    log.info("DELETE TOKEN: {}", token);
+    return refreshTokenRepository.deleteByToken(token);
   }
 }

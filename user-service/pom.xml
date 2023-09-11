@@ -160,6 +160,18 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>compile_cash_service</id>
+						<configuration>
+							<protoSourceRoot>${grpc.proto.path}/cash-service</protoSourceRoot>
+							<outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+							<clearOutputDirectory>false</clearOutputDirectory>
+						</configuration>
+						<goals>
+							<goal>compile</goal>
+							<goal>compile-custom</goal>
+						</goals>
+					</execution>
+					<execution>
 						<id>compile_user_info</id>
 						<configuration>
 							<protoSourceRoot>${grpc.proto.path}/user-service</protoSourceRoot>

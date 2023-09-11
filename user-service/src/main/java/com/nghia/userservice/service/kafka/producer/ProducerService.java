@@ -25,7 +25,7 @@ public class ProducerService {
 
   public void send(MessageDTO messageDTO) {
     Message message = messageRepository.findById(messageDTO.getId()).orElse(null);
-    kafkaTemplate.send("notification", messageDTO)
+    kafkaTemplate.send("mail", messageDTO)
         .addCallback(new KafkaSendCallback<String, Object>() {
 
           @Override

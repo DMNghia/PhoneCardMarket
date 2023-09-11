@@ -18,7 +18,7 @@ public class UserServiceGrpcIml {
     stub = UserServiceGrpc.newBlockingStub(managedChannel);
   }
 
-  public FindUserResponse findUserById(FindUserByUsernameRequest request) {
+  public FindUserResponse findUserByUsername(FindUserByUsernameRequest request) {
     FindUserResponse response = stub.findUserByUsername(request);
     return response;
   }

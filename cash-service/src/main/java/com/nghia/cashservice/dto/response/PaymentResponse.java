@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BaseResponse<T> {
-  private ResponseInfo responseInfo;
-  private T content;
+public class PaymentResponse {
+  private String data;
 }

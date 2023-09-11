@@ -10,10 +10,19 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 @Entity
 @Table(name = "wallet")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Wallet {
 
   @Id
@@ -24,6 +33,8 @@ public class Wallet {
   private Long balance;
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private List<Transaction> transactions;
+  @CreatedDate
+  private LocalDateTime createdAt;
   @LastModifiedDate
   private LocalDateTime lastUpdateAt;
 }

@@ -1,12 +1,12 @@
-package com.nghia.cashservice.entity;
+package com.nghia.userservice.entity;
 
 import java.time.LocalDateTime;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,24 +15,24 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
 @Entity
-@Table(name = "transaction")
+@Table(name = "notification")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Transaction {
+public class Notification {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  private Integer userId;
-  private String username;
-  private Long amount;
-  private String description;
-  @Enumerated(EnumType.STRING)
-  private StatusTransaction status;
-  @Enumerated(EnumType.STRING)
-  private TransactionType type;
+  private String content;
+
+  @ManyToOne
+  @JoinColumn(name = "user_id", referencedColumnName = "id")
+  private User user;
+
   @CreatedDate
   private LocalDateTime createdAt;
+  private boolean isSent;
+  private boolean isSeen;
 }

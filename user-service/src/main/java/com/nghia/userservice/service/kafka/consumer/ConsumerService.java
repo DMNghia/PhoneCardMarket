@@ -20,7 +20,7 @@ public class ConsumerService {
     this.gson = gson;
   }
 
-  @KafkaListener(id = "notificationGroup", topics = "notification")
+  @KafkaListener(id = "mailGroup", topics = "mail")
   public void listen(MessageDTO message) {
     log.info("RECEIVED MESSAGE - {}", gson.toJson(message));
     emailService.sendSimpleMessage(message);

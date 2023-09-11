@@ -1,5 +1,9 @@
 package com.nghia.cashservice.service;
 
-public interface WalletService {
+import com.nghia.cashservice.dto.UserResponseDto;
+import com.nghia.cashservice.entity.Wallet;
+import java.util.Optional;
 
+public interface WalletService {
+  Optional<Wallet> newWallet(UserResponseDto userResponseDto);
 }

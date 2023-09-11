@@ -14,8 +14,13 @@ public class UserServiceApplication {
 	}
 
 	@Bean
-	NewTopic notification() {
+	NewTopic mail() {
 		// topic name , partition numbers, replication number
+		return new NewTopic("mail", 2, (short) 3);
+	}
+
+	@Bean
+	NewTopic notification() {
 		return new NewTopic("notification", 2, (short) 3);
 	}
 

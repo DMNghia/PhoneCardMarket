@@ -15,7 +15,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: Nghia
+    password: nghia
     url: jdbc:mysql://localhost:3306/phonecardmarket
 
   kafka:
@@ -26,10 +26,10 @@ spring:
       acks: -1
       retries: 1
       properties:
-        [request.timeout.ms]: 1
-        [enable.idempotence]: true
-        [max.in.flight.requests.per.connection]: 5
-        [spring.json.add.type.headers]: false
+        [ request.timeout.ms ]: 1
+        [ enable.idempotence ]: true
+        [ max.in.flight.requests.per.connection ]: 5
+        [ spring.json.add.type.headers ]: false
 
     consumer:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
@@ -39,4 +39,8 @@ spring:
 
 grpc:
   server:
+    cash-service:
+      host: ${CASH_SERVICE_GRPC_HOST}
+      port: ${CASH_SERVICE_GRPC_PORT}
+      timeout: ${GRPC_TIMEOUT}
     port: 9090

@@ -9,10 +9,15 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/phonecardmarket
     username: root
-    password: Nghia
+    password: nghia
     driver-class-name: com.mysql.cj.jdbc.Driver
   config:
     import: classpath:config/local.properties
+
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    timeout: ${REDIS_TIMEOUT}
 
 grpc:
   server:

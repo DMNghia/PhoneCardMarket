@@ -1,6 +1,8 @@
 package com.nghia.userservice.service.iml;
 
 import com.google.gson.Gson;
+import com.nghia.grpc.entities.cash.CreateWalletRequest;
+import com.nghia.grpc.entities.cash.CreateWalletResponse;
 import com.nghia.userservice.common.CodeConstant;
 import com.nghia.userservice.common.ResponseType;
 import com.nghia.userservice.dto.MessageDTO;
@@ -14,6 +16,7 @@ import com.nghia.userservice.dto.response.ResponseInfo;
 import com.nghia.userservice.entity.ActiveToken;
 import com.nghia.userservice.entity.User;
 import com.nghia.userservice.exception.MessageException;
+import com.nghia.userservice.exception.TokenRefreshException;
 import com.nghia.userservice.repository.ActiveTokenRepository;
 import com.nghia.userservice.repository.UserRepository;
 import com.nghia.userservice.security.JwtUtils;
@@ -22,6 +25,7 @@ import com.nghia.userservice.service.AuthService;
 import com.nghia.userservice.service.MessageService;
 import com.nghia.userservice.service.RefreshTokenService;
 import com.nghia.userservice.service.UserService;
+import com.nghia.userservice.service.grpc.CashServiceGrpcIml;
 import com.nghia.userservice.service.kafka.producer.ProducerService;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -48,12 +52,13 @@ public class AuthServiceIml implements AuthService {
   private final MessageService messageService;
   private final ProducerService producerService;
   private final ActiveTokenRepository activeTokenRepository;
+  private final CashServiceGrpcIml cashService;
 
   public AuthServiceIml(AuthenticationManager authenticationManager, JwtUtils jwtUtils,
       UserRepository userRepository, RefreshTokenService refreshTokenService,
       UserService userService, Gson gson, ActiveTokenService activeTokenService,
       MessageService messageService, ProducerService producerService,
-      ActiveTokenRepository activeTokenRepository) {
+      ActiveTokenRepository activeTokenRepository, CashServiceGrpcIml cashService) {
     this.authenticationManager = authenticationManager;
     this.jwtUtils = jwtUtils;
     this.gson = gson;
@@ -64,6 +69,7 @@ public class AuthServiceIml implements AuthService {
     this.messageService = messageService;
     this.producerService = producerService;
     this.activeTokenRepository = activeTokenRepository;
+    this.cashService = cashService;
   }
 
   @Override
@@ -97,11 +103,13 @@ public class AuthServiceIml implements AuthService {
           .responseInfo(ResponseInfo.builder()
               .code(CodeConstant.ACTIVE_CODE)
               .status(ResponseType.ERROR.name())
-              .message("Tài khoản chưa được kích hoạt vui lòng vào mail và kích hoạt tài khoản của bạn")
+              .message(
+                  "Tài khoản chưa được kích hoạt vui lòng vào mail và kích hoạt tài khoản của bạn")
               .build())
           .build();
     } catch (AuthenticationException ae) {
-      log.error("REQUEST LOGIN - {} -> FAIL CREDENTIALS NOT CORRECT - {}", gson.toJson(request), ae);
+      log.error("REQUEST LOGIN - {} -> FAIL CREDENTIALS NOT CORRECT - {}", gson.toJson(request),
+          ae);
       return BaseResponse.builder()
           .responseInfo(ResponseInfo.builder()
               .code(CodeConstant.ERROR_CODE)
@@ -144,6 +152,20 @@ public class AuthServiceIml implements AuthService {
           .build();
     }
     User user = userService.register(request).orElseThrow(RuntimeException::new);
+    CreateWalletResponse walletResponse =
+        cashService.createNewWallet(CreateWalletRequest.newBuilder()
+            .setUsername(user.getUsername())
+            .build());
+    if (!walletResponse.getResponseInfo().getCode().equals("00")) {
+      log.error("CREATE NEW WALLET REQUEST - {} -> FAIL ->\n{}", user.getUsername(), gson.toJson(walletResponse));
+      return BaseResponse.builder()
+          .responseInfo(ResponseInfo.builder()
+              .code(CodeConstant.ERROR_CODE)
+              .status(ResponseType.ERROR.name())
+              .message("Có lỗi xảy ra")
+              .build())
+          .build();
+    }
     return BaseResponse.builder()
         .responseInfo(ResponseInfo.builder()
             .code(CodeConstant.SUCCESS_CODE)
@@ -155,15 +177,20 @@ public class AuthServiceIml implements AuthService {
 
   @Override
   public BaseResponse<?> refreshToken(RefreshTokenRequest request) {
-    AuthResponse authResponse = refreshTokenService.refreshToken(request.getRefreshToken());
-    return BaseResponse.builder()
-        .responseInfo(ResponseInfo.builder()
-            .code(CodeConstant.SUCCESS_CODE)
-            .status(ResponseType.SUCCESS.name())
-            .message("Thành công")
-            .build())
-        .content(authResponse)
-        .build();
+    try {
+      BaseResponse<?> authResponse = refreshTokenService.refreshToken(request.getRefreshToken());
+      return authResponse;
+    } catch (TokenRefreshException e) {
+      return BaseResponse.builder()
+          .responseInfo(ResponseInfo.builder()
+              .code(CodeConstant.ERROR_CODE)
+              .status(ResponseType.ERROR.name())
+              .message(e.getMessage())
+              .build())
+          .content(null)
+          .build();
+    }
+
   }
 
   @Override
@@ -209,7 +236,8 @@ public class AuthServiceIml implements AuthService {
           .responseInfo(ResponseInfo.builder()
               .code(CodeConstant.ERROR_CODE)
               .status(ResponseType.ERROR.name())
-              .message("Mã kích hoạt đã quá hạn sử dụng chúng tôi đã gửi một mã kích hoạt mới vui lòng kích hoạt lại")
+              .message(
+                  "Mã kích hoạt đã quá hạn sử dụng chúng tôi đã gửi một mã kích hoạt mới vui lòng kích hoạt lại")
               .build())
           .build();
     }

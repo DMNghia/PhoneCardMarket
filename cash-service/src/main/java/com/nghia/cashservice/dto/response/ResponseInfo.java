@@ -6,10 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class BaseResponse<T> {
-  private ResponseInfo responseInfo;
-  private T content;
+@NoArgsConstructor
+@AllArgsConstructor
+public class ResponseInfo {
+  private String code;
+  private String status;
+  private String message;
 }
