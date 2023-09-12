@@ -8,7 +8,12 @@ import com.nghia.cashservice.dto.request.DepositMoneyRequest;
 import com.nghia.cashservice.dto.response.BaseResponse;
 import com.nghia.cashservice.dto.response.PaymentResponse;
 import com.nghia.cashservice.dto.response.ResponseInfo;
+import com.nghia.cashservice.entity.Transaction;
+import com.nghia.cashservice.security.JwtUtils;
 import com.nghia.cashservice.service.RechargeService;
+import com.nghia.cashservice.service.grpc.userService.UserServiceGrpcIml;
+import com.nghia.grpc.entities.user.FindUserByUsernameRequest;
+import com.nghia.grpc.entities.user.FindUserResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -31,10 +36,15 @@ public class RechargeServiceIml implements RechargeService {
 
   private final Gson gson;
   private final RedisTemplate<String, Object> redisTemplate;
+  private final JwtUtils jwtUtils;
+  private final UserServiceGrpcIml userServiceGrpcIml;
 
-  public RechargeServiceIml(Gson gson, RedisTemplate<String, Object> redisTemplate) {
+  public RechargeServiceIml(Gson gson, RedisTemplate<String, Object> redisTemplate,
+      JwtUtils jwtUtils, UserServiceGrpcIml userServiceGrpcIml) {
     this.gson = gson;
     this.redisTemplate = redisTemplate;
+    this.jwtUtils = jwtUtils;
+    this.userServiceGrpcIml = userServiceGrpcIml;
   }
 
   @Override
@@ -163,5 +173,21 @@ public class RechargeServiceIml implements RechargeService {
     log.info("GET VNPAY URL REQUEST:\n{}-> SUCCESS:\n{}", gson.toJson(depositMoneyRequest),
         gson.toJson(response));
     return response;
+  }
+
+  @Override
+  public BaseResponse<?> depositMoney(HttpServletRequest request) {
+    String jwt = jwtUtils.getJwtFromRequest(request);
+    String username = jwtUtils.getUsernameFromJWT(jwt);
+
+    FindUserResponse userResponse = userServiceGrpcIml.findUserByUsername(
+        FindUserByUsernameRequest.newBuilder()
+            .setUsername(username)
+            .build());
+
+    Transaction transaction = Transaction.builder()
+
+        .build();
+    return null;
   }
 }
