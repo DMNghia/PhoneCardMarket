@@ -1,6 +1,6 @@
 package com.nghia.cashservice.security;
 
-import com.nghia.cashservice.dto.response.ResponseInfo;
+import com.nghia.cashservice.dto.UserResponseDto;
 import com.nghia.cashservice.service.grpc.userService.UserServiceGrpcIml;
 import com.nghia.grpc.entities.user.FindUserByUsernameRequest;
 import com.nghia.grpc.entities.user.FindUserResponse;
@@ -11,7 +11,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.NonNull;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,10 +41,19 @@ public class JwtFilter extends OncePerRequestFilter {
           FindUserByUsernameRequest.newBuilder()
               .setUsername(username)
               .build());
+
       if (userResponse.getBaseResponse().getCode().equals("00")) {
-        GrantedAuthority granted = new SimpleGrantedAuthority(userResponse.getRole().name());
+        UserResponseDto userResponseDto = UserResponseDto.builder()
+            .id(userResponse.getId())
+            .username(userResponse.getUsername())
+            .email(userResponse.getEmail())
+            .roleName(userResponse.getRole().name())
+            .isEnable(userResponse.getIsEnable())
+            .isLocked(userResponse.getIsLocked())
+            .build();
+        GrantedAuthority granted = new SimpleGrantedAuthority(userResponseDto.getRoleName());
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-            userResponse, null, Collections.singleton(granted));
+            userResponseDto, null, Collections.singleton(granted));
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
       }

@@ -18,6 +18,6 @@ public class TransactionServiceIml implements TransactionService {
 
   @Override
   public Transaction createTransaction(Transaction transaction) {
-    return transactionRepository.save(transaction);;
+    return transactionRepository.save(transaction);
   }
 }

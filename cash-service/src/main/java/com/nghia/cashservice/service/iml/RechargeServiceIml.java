@@ -120,7 +120,6 @@ public class RechargeServiceIml implements RechargeService {
       vnp_Params.put("vnp_Locale", "vn");
     }
     vnp_Params.put("vnp_ReturnUrl", VNPayConfig.vnp_Returnurl);
-    vnp_Params.put("vnp_apiUrl", VNPayConfig.vnp_apiUrl);
     vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
     Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -172,6 +171,7 @@ public class RechargeServiceIml implements RechargeService {
         .build();
     log.info("GET VNPAY URL REQUEST:\n{}-> SUCCESS:\n{}", gson.toJson(depositMoneyRequest),
         gson.toJson(response));
+
     return response;
   }
 
