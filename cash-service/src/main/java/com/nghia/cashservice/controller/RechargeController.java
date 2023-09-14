@@ -1,12 +1,14 @@
 package com.nghia.cashservice.controller;
 
 import com.nghia.cashservice.dto.request.DepositMoneyRequest;
+import com.nghia.cashservice.dto.request.RechargeRequest;
 import com.nghia.cashservice.dto.response.BaseResponse;
 import com.nghia.cashservice.service.RechargeService;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -32,16 +34,26 @@ public class RechargeController {
 
   @GetMapping("/deposit")
   public ResponseEntity<?> deposit(
-      @RequestParam("vnp_ResponseCode") String responseCode,
-      @RequestParam("vnp_SecureHash") String secureHash) {
+      @RequestParam("vnp_ResponseCode") @NotNull String responseCode,
+      @RequestParam("vnp_TmnCode") @NotNull String vnp_TmnCode,
+      @RequestParam("vnp_TxnRef") @NotNull String vnp_TxnRef,
+      @RequestParam("vnp_TransactionStatus") @NotNull String vnp_TransactionStatus) {
 
-    return null;
+    DepositMoneyRequest request =
+        DepositMoneyRequest.builder()
+            .responseCode(responseCode)
+            .vnp_TmnCode(vnp_TmnCode)
+            .vnp_TxnRef(vnp_TxnRef)
+            .vnp_TransactionStatus(vnp_TransactionStatus)
+        .build();
+    BaseResponse<?> response = rechargeService.depositMoney(request);
+    return ResponseEntity.ok(response);
   }
 
   @PostMapping("/getUrl")
-  public ResponseEntity<?> getUrl(@Valid @RequestBody DepositMoneyRequest depositMoneyRequest,
+  public ResponseEntity<?> getUrl(@Valid @RequestBody RechargeRequest rechargeRequest,
       HttpServletRequest request) {
-    BaseResponse<?> response = rechargeService.getUrlVnpay(depositMoneyRequest, request);
+    BaseResponse<?> response = rechargeService.getUrlVnpay(rechargeRequest, request);
     return ResponseEntity.ok(response);
   }
 

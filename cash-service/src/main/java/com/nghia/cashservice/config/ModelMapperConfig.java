@@ -27,7 +27,8 @@ public class ModelMapperConfig {
       @Override
       protected void configure() {
         map().setAmount(source.getAmount());
-        map().setVnpaySecureHash(source.getVnpaySecureHash());
+        map().setVnp_TmnCode(source.getVnpTmnCode());
+        map().setVnpay_TxnRef(source.getVnpTxnRef());
         map().setUsername(source.getUsername());
         map().setUserId(source.getUserId());
         map().setStatus(source.getStatus());
@@ -41,7 +42,8 @@ public class ModelMapperConfig {
       @Override
       protected void configure() {
         map().setAmount(source.getAmount());
-        map().setVnpaySecureHash(source.getVnpaySecureHash());
+        map().setVnpTmnCode(source.getVnp_TmnCode());
+        map().setVnpTxnRef(source.getVnpay_TxnRef());
         map().setUsername(source.getUsername());
         map().setUserId(source.getUserId());
         map().setStatus(source.getStatus());

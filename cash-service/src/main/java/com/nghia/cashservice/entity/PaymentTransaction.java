@@ -29,7 +29,8 @@ public class PaymentTransaction {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   private Double amount;
-  private String vnpaySecureHash;
+  private String vnpTxnRef;
+  private String vnpTmnCode;
   private Integer userId;
   private String username;
 

@@ -2,6 +2,7 @@ package com.nghia.cashservice.service.iml;
 
 import com.google.gson.Gson;
 import com.nghia.cashservice.dto.PaymentTransactionDto;
+import com.nghia.cashservice.dto.request.DepositMoneyRequest;
 import com.nghia.cashservice.entity.PaymentTransaction;
 import com.nghia.cashservice.repository.PaymentTransactionRepository;
 import com.nghia.cashservice.service.PaymentTransactionService;
@@ -36,14 +37,15 @@ public class PaymentTransactionServiceIml implements PaymentTransactionService {
   }
 
   @Override
-  public Optional<PaymentTransactionDto> findPaymentTransactionBySecureHash(String secureHash) {
+  public Optional<PaymentTransactionDto> findPaymentTransaction(DepositMoneyRequest request) {
     PaymentTransaction resultOptional =
-        paymentTransactionRepository.findByVnpaySecureHash(secureHash).orElse(null);
+        paymentTransactionRepository.findByVnpTxnRefAndVnpTmnCode(request.getVnp_TxnRef(),
+            request.getVnp_TmnCode());
     if (ObjectUtils.isEmpty(resultOptional)) {
-      log.info("FIND PAYMENT BY SECURE HASH REQUEST: {} -> FAIL CANNOT FIND", secureHash);
+      log.info("FIND PAYMENT PAYMENT  REQUEST:\n{}\n-> FAIL CANNOT FIND", gson.toJson(request));
       return Optional.empty();
     }
-    return Optional.ofNullable(modelMapper.map(resultOptional, PaymentTransactionDto.class));
+    return Optional.empty();
   }
 
   @Override

@@ -7,6 +7,7 @@ import com.nghia.cashservice.config.VNPayConfig;
 import com.nghia.cashservice.dto.PaymentTransactionDto;
 import com.nghia.cashservice.dto.UserResponseDto;
 import com.nghia.cashservice.dto.request.DepositMoneyRequest;
+import com.nghia.cashservice.dto.request.RechargeRequest;
 import com.nghia.cashservice.dto.response.BaseResponse;
 import com.nghia.cashservice.dto.response.PaymentResponse;
 import com.nghia.cashservice.dto.response.ResponseInfo;
@@ -58,15 +59,15 @@ public class RechargeServiceIml implements RechargeService {
   }
 
   @Override
-  public BaseResponse<?> getUrlVnpay(DepositMoneyRequest depositMoneyRequest,
+  public BaseResponse<?> getUrlVnpay(RechargeRequest rechargeRequest,
       HttpServletRequest request) {
     try {
       Integer minLimit = (Integer) redisTemplate.opsForValue().get("RECHARGE_MIN_LIMIT");
       Integer maxLimit = (Integer) redisTemplate.opsForValue().get("RECHARGE_MAX_LIMIT");
 
-      if (depositMoneyRequest.getAmount() > Long.valueOf(maxLimit)) {
+      if (rechargeRequest.getAmount() > Long.valueOf(maxLimit)) {
         log.info("GET URL VNPAY REQUEST:\n{}\n-> FAIL: MONEY GREATER THAN MAXIMUM RECHARGE: {}",
-            gson.toJson(depositMoneyRequest), maxLimit);
+            gson.toJson(rechargeRequest), maxLimit);
         return BaseResponse.builder()
             .responseInfo(ResponseInfo.builder()
                 .code(CodeConstant.INVALID_REQUEST_CODE)
@@ -77,9 +78,9 @@ public class RechargeServiceIml implements RechargeService {
             .build();
       }
 
-      if (depositMoneyRequest.getAmount() < Long.valueOf(minLimit)) {
+      if (rechargeRequest.getAmount() < Long.valueOf(minLimit)) {
         log.info("GET URL VNPAY REQUEST:\n{}\n-> FAIL: MONEY LESS THAN MINIMUM RECHARGE: {}",
-            gson.toJson(depositMoneyRequest), minLimit);
+            gson.toJson(rechargeRequest), minLimit);
         return BaseResponse.builder()
             .responseInfo(ResponseInfo.builder()
                 .code(CodeConstant.INVALID_REQUEST_CODE)
@@ -90,7 +91,7 @@ public class RechargeServiceIml implements RechargeService {
             .build();
       }
     } catch (Exception e) {
-      log.error("GET URL VNPAY REQUEST:\n{}\n-> ERROR:", gson.toJson(depositMoneyRequest), e);
+      log.error("GET URL VNPAY REQUEST:\n{}\n-> ERROR:", gson.toJson(rechargeRequest), e);
       return BaseResponse.builder()
           .responseInfo(ResponseInfo.builder()
               .code(CodeConstant.ERROR_CODE)
@@ -101,9 +102,9 @@ public class RechargeServiceIml implements RechargeService {
           .build();
     }
 
-    String orderType = depositMoneyRequest.getOrderType();
-    long amount = (long) (depositMoneyRequest.getAmount() * 100);
-    String bankCode = depositMoneyRequest.getBankCode();
+    String orderType = rechargeRequest.getOrderType();
+    long amount = (long) (rechargeRequest.getAmount() * 100);
+    String bankCode = rechargeRequest.getBankCode();
 
     String vnp_TxnRef = VNPayConfig.getRandomNumber(8);
     String vnp_IpAddr = VNPayConfig.getIpAddress(request);
@@ -123,7 +124,7 @@ public class RechargeServiceIml implements RechargeService {
     vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
     vnp_Params.put("vnp_OrderType", orderType);
 
-    String locate = depositMoneyRequest.getLanguage();
+    String locate = rechargeRequest.getLanguage();
     if (locate != null && !locate.isEmpty()) {
       vnp_Params.put("vnp_Locale", locate);
     } else {
@@ -169,6 +170,9 @@ public class RechargeServiceIml implements RechargeService {
     queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
     String paymentUrl = VNPayConfig.vnp_PayUrl + "?" + queryUrl;
 
+    log.info("VNPAY PARAM:\n{}", gson.toJson(vnp_Params));
+    log.info("paymentURL: {}", paymentUrl);
+
     BaseResponse<Object> response = BaseResponse.builder()
         .responseInfo(ResponseInfo.builder()
             .code(CodeConstant.SUCCESS_CODE)
@@ -179,7 +183,7 @@ public class RechargeServiceIml implements RechargeService {
             .data(paymentUrl)
             .build())
         .build();
-    log.info("GET VNPAY URL REQUEST:\n{}-> SUCCESS:\n{}", gson.toJson(depositMoneyRequest),
+    log.info("GET VNPAY URL REQUEST:\n{}-> SUCCESS:\n{}", gson.toJson(rechargeRequest),
         gson.toJson(response));
 
     // Get authentication
@@ -188,10 +192,11 @@ public class RechargeServiceIml implements RechargeService {
 
     // Create request create payment transaction
     PaymentTransactionDto paymentTransactionDto = PaymentTransactionDto.builder()
-        .vnpaySecureHash(vnp_SecureHash)
+        .vnp_TmnCode(vnp_TmnCode)
+        .vnpay_TxnRef(vnp_TxnRef)
         .userId(userResponseDto.getId())
         .username(userResponseDto.getUsername())
-        .amount(depositMoneyRequest.getAmount())
+        .amount(rechargeRequest.getAmount())
         .status(StatusTransaction.PENDING)
         .type(TransactionType.IN)
         .build();
@@ -201,9 +206,9 @@ public class RechargeServiceIml implements RechargeService {
   }
 
   @Override
-  public BaseResponse<?> depositMoney(String code, String secureHash) {
+  public BaseResponse<?> depositMoney(DepositMoneyRequest request) {
     Optional<PaymentTransactionDto> paymentTransactionDto =
-        paymentTransactionService.findPaymentTransactionBySecureHash(secureHash);
+        paymentTransactionService.findPaymentTransaction(request);
     if (paymentTransactionDto.isEmpty()) {
       return BaseResponse.builder()
           .responseInfo(ResponseInfo.builder()
@@ -215,7 +220,16 @@ public class RechargeServiceIml implements RechargeService {
     }
     PaymentTransactionDto paymentTransaction =
         paymentTransactionDto.get();
-    if (!code.equals("00")) {
+    if (!paymentTransaction.getStatus().equals(StatusTransaction.PENDING)) {
+      return BaseResponse.builder()
+          .responseInfo(ResponseInfo.builder()
+              .code(CodeConstant.INVALID_REQUEST_CODE)
+              .status(ResponseType.INVALID_REQUEST.name())
+              .message("Giao dịch đã thực hiện hoàn tất, đã tồn tại")
+              .build())
+          .build();
+    }
+    if (!request.getResponseCode().equals("00") || !request.getVnp_TransactionStatus().equals("00")) {
       paymentTransaction.setStatus(StatusTransaction.FAIL);
       paymentTransactionService.updateTransaction(paymentTransaction);
       return BaseResponse.builder()

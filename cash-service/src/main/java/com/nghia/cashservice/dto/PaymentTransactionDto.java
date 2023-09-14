@@ -14,7 +14,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PaymentTransactionDto {
   private Double amount;
-  private String vnpaySecureHash;
+  private String vnpay_TxnRef;
+  private String vnp_TmnCode;
   private Integer userId;
   private String username;
   private StatusTransaction status;

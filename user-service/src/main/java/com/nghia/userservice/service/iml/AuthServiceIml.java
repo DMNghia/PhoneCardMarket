@@ -152,20 +152,7 @@ public class AuthServiceIml implements AuthService {
           .build();
     }
     User user = userService.register(request).orElseThrow(RuntimeException::new);
-    CreateWalletResponse walletResponse =
-        cashService.createNewWallet(CreateWalletRequest.newBuilder()
-            .setUsername(user.getUsername())
-            .build());
-    if (!walletResponse.getResponseInfo().getCode().equals("00")) {
-      log.error("CREATE NEW WALLET REQUEST - {} -> FAIL ->\n{}", user.getUsername(), gson.toJson(walletResponse));
-      return BaseResponse.builder()
-          .responseInfo(ResponseInfo.builder()
-              .code(CodeConstant.ERROR_CODE)
-              .status(ResponseType.ERROR.name())
-              .message("Có lỗi xảy ra")
-              .build())
-          .build();
-    }
+
     return BaseResponse.builder()
         .responseInfo(ResponseInfo.builder()
             .code(CodeConstant.SUCCESS_CODE)
@@ -238,6 +225,20 @@ public class AuthServiceIml implements AuthService {
               .status(ResponseType.ERROR.name())
               .message(
                   "Mã kích hoạt đã quá hạn sử dụng chúng tôi đã gửi một mã kích hoạt mới vui lòng kích hoạt lại")
+              .build())
+          .build();
+    }
+    CreateWalletResponse walletResponse =
+        cashService.createNewWallet(CreateWalletRequest.newBuilder()
+            .setUsername(user.getUsername())
+            .build());
+    if (!walletResponse.getResponseInfo().getCode().equals("00")) {
+      log.error("CREATE NEW WALLET REQUEST - {} -> FAIL ->\n{}", user.getUsername(), gson.toJson(walletResponse));
+      return BaseResponse.builder()
+          .responseInfo(ResponseInfo.builder()
+              .code(CodeConstant.ERROR_CODE)
+              .status(ResponseType.ERROR.name())
+              .message("Có lỗi xảy ra")
               .build())
           .build();
     }
