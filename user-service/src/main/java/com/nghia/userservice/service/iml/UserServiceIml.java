@@ -1,6 +1,7 @@
 package com.nghia.userservice.service.iml;
 
 import com.nghia.userservice.dto.MessageDTO;
+import com.nghia.userservice.dto.UserDto;
 import com.nghia.userservice.dto.request.SignUpRequest;
 import com.nghia.userservice.entity.ActiveToken;
 import com.nghia.userservice.entity.Role;
@@ -16,6 +17,7 @@ import com.nghia.userservice.service.kafka.producer.ProducerService;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -30,16 +32,18 @@ public class UserServiceIml implements UserService {
   private final UserRepository userRepository;
   private final ProducerService producerService;
   private final MessageService messageService;
+  private final ModelMapper modelMapper;
 
   public UserServiceIml(PasswordEncoder passwordEncoder, RoleRepository roleRepository,
       ActiveTokenService activeTokenService, UserRepository userRepository,
-      ProducerService producerService, MessageService messageService) {
+      ProducerService producerService, MessageService messageService, ModelMapper modelMapper) {
     this.passwordEncoder = passwordEncoder;
     this.roleRepository = roleRepository;
     this.activeTokenService = activeTokenService;
     this.userRepository = userRepository;
     this.producerService = producerService;
     this.messageService = messageService;
+    this.modelMapper = modelMapper;
   }
 
   @Override
@@ -77,5 +81,11 @@ public class UserServiceIml implements UserService {
   @Override
   public Optional<User> findById(int id) {
     return userRepository.findById(id);
+  }
+
+  @Override
+  public UserDto updateUser(User user) {
+    user.setUpdatedAt(LocalDateTime.now());
+    return modelMapper.map(userRepository.save(user), UserDto.class);
   }
 }

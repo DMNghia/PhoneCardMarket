@@ -6,9 +6,12 @@ import com.nghia.grpc.entities.user.FindUserByIdRequest;
 import com.nghia.grpc.entities.user.FindUserByUsernameRequest;
 import com.nghia.grpc.entities.user.FindUserResponse;
 import com.nghia.grpc.entities.user.Role;
+import com.nghia.grpc.entities.user.UpdateUserRequest;
+import com.nghia.grpc.entities.user.UpdateUserResponse;
 import com.nghia.grpc.services.userService.UserServiceGrpc.UserServiceImplBase;
 import com.nghia.userservice.common.CodeConstant;
 import com.nghia.userservice.common.ResponseType;
+import com.nghia.userservice.dto.UserDto;
 import com.nghia.userservice.entity.User;
 import com.nghia.userservice.service.UserService;
 import io.grpc.stub.StreamObserver;
@@ -26,6 +29,61 @@ public class UserServiceGrpcIml extends UserServiceImplBase {
   public UserServiceGrpcIml(UserService userService, Gson gson) {
     this.userService = userService;
     this.gson = gson;
+  }
+
+  @Override
+  public void updateUser(UpdateUserRequest request,
+      StreamObserver<UpdateUserResponse> responseObserver) {
+    try {
+      Optional<User> userOptional = userService.findByUsername(request.getUsername());
+      if (userOptional.isEmpty()) {
+        log.warn("UPDATE USER REQUEST:\n{}\n-> FAIL CANNOT FIND USER", gson.toJson(request));
+        UpdateUserResponse response = UpdateUserResponse.newBuilder()
+            .setBaseResponse(BaseResponse.newBuilder()
+                .setCode(CodeConstant.INVALID_REQUEST_CODE)
+                .setStatus(ResponseType.INVALID_REQUEST.name())
+                .setMessage("Không thể tìm thấy")
+                .build())
+            .build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+        return;
+      }
+      UserDto userDto = userService.updateUser(userOptional.get());
+      Role role = null;
+      switch (userDto.getRole().getName()) {
+        case USER: role = Role.USER;break;
+        case ADMIN: role = Role.ADMIN;break;
+        case STAFF: role = Role.STAFF;break;
+      }
+      log.info("UPDATE USER - REQUEST:\n{}\n-> SUCCESS:\n{}", gson.toJson(request),
+          gson.toJson(userDto));
+      UpdateUserResponse response = UpdateUserResponse.newBuilder()
+          .setBaseResponse(BaseResponse.newBuilder()
+              .setCode(CodeConstant.SUCCESS_CODE)
+              .setStatus(ResponseType.SUCCESS.name())
+              .setMessage("Thành công")
+              .build())
+          .setId(userDto.getId())
+          .setUsername(userDto.getUsername())
+          .setEmail(userDto.getEmail())
+          .setIsEnable(userDto.isEnable())
+          .setIsLocked(userDto.isLocked())
+          .setRole(role)
+          .build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (RuntimeException e) {
+      UpdateUserResponse response = UpdateUserResponse.newBuilder()
+          .setBaseResponse(BaseResponse.newBuilder()
+              .setCode(CodeConstant.ERROR_CODE)
+              .setStatus(ResponseType.ERROR.name())
+              .setMessage("Có lỗi xảy ra")
+              .build())
+          .build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    }
   }
 
   @Override

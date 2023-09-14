@@ -7,5 +7,5 @@ import javax.servlet.http.HttpServletRequest;
 public interface RechargeService {
   public BaseResponse<?> getUrlVnpay(DepositMoneyRequest depositMoneyRequest, HttpServletRequest request);
 
-  public BaseResponse<?> depositMoney(HttpServletRequest request);
+  public BaseResponse<?> depositMoney(String code, String secureHash);
 }

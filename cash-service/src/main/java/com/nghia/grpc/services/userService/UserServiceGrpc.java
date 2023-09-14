@@ -77,6 +77,37 @@ public final class UserServiceGrpc {
     return getFindUserByUsernameMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<com.nghia.grpc.entities.user.UpdateUserRequest,
+      com.nghia.grpc.entities.user.UpdateUserResponse> getUpdateUserMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "updateUser",
+      requestType = com.nghia.grpc.entities.user.UpdateUserRequest.class,
+      responseType = com.nghia.grpc.entities.user.UpdateUserResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<com.nghia.grpc.entities.user.UpdateUserRequest,
+      com.nghia.grpc.entities.user.UpdateUserResponse> getUpdateUserMethod() {
+    io.grpc.MethodDescriptor<com.nghia.grpc.entities.user.UpdateUserRequest, com.nghia.grpc.entities.user.UpdateUserResponse> getUpdateUserMethod;
+    if ((getUpdateUserMethod = UserServiceGrpc.getUpdateUserMethod) == null) {
+      synchronized (UserServiceGrpc.class) {
+        if ((getUpdateUserMethod = UserServiceGrpc.getUpdateUserMethod) == null) {
+          UserServiceGrpc.getUpdateUserMethod = getUpdateUserMethod =
+              io.grpc.MethodDescriptor.<com.nghia.grpc.entities.user.UpdateUserRequest, com.nghia.grpc.entities.user.UpdateUserResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "updateUser"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.nghia.grpc.entities.user.UpdateUserRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.nghia.grpc.entities.user.UpdateUserResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new UserServiceMethodDescriptorSupplier("updateUser"))
+              .build();
+        }
+      }
+    }
+    return getUpdateUserMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -138,6 +169,13 @@ public final class UserServiceGrpc {
         io.grpc.stub.StreamObserver<com.nghia.grpc.entities.user.FindUserResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getFindUserByUsernameMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void updateUser(com.nghia.grpc.entities.user.UpdateUserRequest request,
+        io.grpc.stub.StreamObserver<com.nghia.grpc.entities.user.UpdateUserResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getUpdateUserMethod(), responseObserver);
+    }
   }
 
   /**
@@ -182,6 +220,14 @@ public final class UserServiceGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getFindUserByUsernameMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void updateUser(com.nghia.grpc.entities.user.UpdateUserRequest request,
+        io.grpc.stub.StreamObserver<com.nghia.grpc.entities.user.UpdateUserResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getUpdateUserMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -212,6 +258,13 @@ public final class UserServiceGrpc {
     public com.nghia.grpc.entities.user.FindUserResponse findUserByUsername(com.nghia.grpc.entities.user.FindUserByUsernameRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getFindUserByUsernameMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public com.nghia.grpc.entities.user.UpdateUserResponse updateUser(com.nghia.grpc.entities.user.UpdateUserRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getUpdateUserMethod(), getCallOptions(), request);
     }
   }
 
@@ -246,10 +299,19 @@ public final class UserServiceGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getFindUserByUsernameMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<com.nghia.grpc.entities.user.UpdateUserResponse> updateUser(
+        com.nghia.grpc.entities.user.UpdateUserRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getUpdateUserMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_FIND_USER_BY_ID = 0;
   private static final int METHODID_FIND_USER_BY_USERNAME = 1;
+  private static final int METHODID_UPDATE_USER = 2;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -275,6 +337,10 @@ public final class UserServiceGrpc {
         case METHODID_FIND_USER_BY_USERNAME:
           serviceImpl.findUserByUsername((com.nghia.grpc.entities.user.FindUserByUsernameRequest) request,
               (io.grpc.stub.StreamObserver<com.nghia.grpc.entities.user.FindUserResponse>) responseObserver);
+          break;
+        case METHODID_UPDATE_USER:
+          serviceImpl.updateUser((com.nghia.grpc.entities.user.UpdateUserRequest) request,
+              (io.grpc.stub.StreamObserver<com.nghia.grpc.entities.user.UpdateUserResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -308,6 +374,13 @@ public final class UserServiceGrpc {
               com.nghia.grpc.entities.user.FindUserByUsernameRequest,
               com.nghia.grpc.entities.user.FindUserResponse>(
                 service, METHODID_FIND_USER_BY_USERNAME)))
+        .addMethod(
+          getUpdateUserMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              com.nghia.grpc.entities.user.UpdateUserRequest,
+              com.nghia.grpc.entities.user.UpdateUserResponse>(
+                service, METHODID_UPDATE_USER)))
         .build();
   }
 
@@ -358,6 +431,7 @@ public final class UserServiceGrpc {
               .setSchemaDescriptor(new UserServiceFileDescriptorSupplier())
               .addMethod(getFindUserByIdMethod())
               .addMethod(getFindUserByUsernameMethod())
+              .addMethod(getUpdateUserMethod())
               .build();
         }
       }

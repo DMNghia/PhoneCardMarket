@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
 public class VNPayConfig {
 
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static String vnp_Returnurl = "http://localhost:8070/deposit";
+    public static String vnp_Returnurl = "http://localhost:8070/api/payment/deposit";
     public static String vnp_Version = "2.1.0";
     public static String vnp_Command = "pay";
     public static String vnp_TmnCode = "RG0FYY4U";

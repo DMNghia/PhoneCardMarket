@@ -12,15 +12,16 @@ import com.nghia.grpc.entities.cash.CreateWalletRequest;
 import com.nghia.grpc.entities.cash.CreateWalletResponse;
 import com.nghia.grpc.entities.user.FindUserByUsernameRequest;
 import com.nghia.grpc.entities.user.FindUserResponse;
-import com.nghia.grpc.services.cashService.CashServiceGrpc;
+import com.nghia.grpc.services.cashService.CashServiceGrpc.CashServiceImplBase;
 import io.grpc.stub.StreamObserver;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Service;
 
-@Service
+@GrpcService
 @Slf4j
-public class CashServiceGrpcIml extends CashServiceGrpc.CashServiceImplBase {
+public class CashServiceGrpcIml extends CashServiceImplBase {
 
   private final UserServiceGrpcIml userServiceGrpcIml;
   private final WalletService walletService;

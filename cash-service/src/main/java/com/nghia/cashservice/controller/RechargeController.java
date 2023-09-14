@@ -12,9 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,10 +30,13 @@ public class RechargeController {
     this.rechargeService = rechargeService;
   }
 
-//  @PostMapping("/deposit")
-//  public ResponseEntity<?> deposit(HttpServletRequest request) {
-////    request.ge
-//  }
+  @GetMapping("/deposit")
+  public ResponseEntity<?> deposit(
+      @RequestParam("vnp_ResponseCode") String responseCode,
+      @RequestParam("vnp_SecureHash") String secureHash) {
+
+    return null;
+  }
 
   @PostMapping("/getUrl")
   public ResponseEntity<?> getUrl(@Valid @RequestBody DepositMoneyRequest depositMoneyRequest,

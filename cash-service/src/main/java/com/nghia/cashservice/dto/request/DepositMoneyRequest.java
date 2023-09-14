@@ -19,7 +19,7 @@ public class DepositMoneyRequest {
   @NotBlank(message = "Thiếu order type")
   private String orderType;
   @NotNull(message = "Số tiền không được để trống")
-  private Long amount;
+  private Double amount;
   private String bankCode;
   private final String language = "vn";
 }

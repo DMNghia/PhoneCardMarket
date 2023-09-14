@@ -4,16 +4,21 @@ import com.google.gson.Gson;
 import com.nghia.cashservice.common.CodeConstant;
 import com.nghia.cashservice.common.ResponseType;
 import com.nghia.cashservice.config.VNPayConfig;
+import com.nghia.cashservice.dto.PaymentTransactionDto;
+import com.nghia.cashservice.dto.UserResponseDto;
 import com.nghia.cashservice.dto.request.DepositMoneyRequest;
 import com.nghia.cashservice.dto.response.BaseResponse;
 import com.nghia.cashservice.dto.response.PaymentResponse;
 import com.nghia.cashservice.dto.response.ResponseInfo;
+import com.nghia.cashservice.entity.PaymentTransaction;
+import com.nghia.cashservice.entity.StatusTransaction;
 import com.nghia.cashservice.entity.Transaction;
-import com.nghia.cashservice.security.JwtUtils;
+import com.nghia.cashservice.entity.TransactionType;
+import com.nghia.cashservice.exception.BaseException;
+import com.nghia.cashservice.service.PaymentTransactionService;
 import com.nghia.cashservice.service.RechargeService;
-import com.nghia.cashservice.service.grpc.userService.UserServiceGrpcIml;
-import com.nghia.grpc.entities.user.FindUserByUsernameRequest;
-import com.nghia.grpc.entities.user.FindUserResponse;
+import com.nghia.cashservice.service.TransactionService;
+import com.nghia.cashservice.service.WalletService;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -24,10 +29,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TimeZone;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,15 +43,18 @@ public class RechargeServiceIml implements RechargeService {
 
   private final Gson gson;
   private final RedisTemplate<String, Object> redisTemplate;
-  private final JwtUtils jwtUtils;
-  private final UserServiceGrpcIml userServiceGrpcIml;
+  private final PaymentTransactionService paymentTransactionService;
+  private final WalletService walletService;
+  private final TransactionService transactionService;
 
   public RechargeServiceIml(Gson gson, RedisTemplate<String, Object> redisTemplate,
-      JwtUtils jwtUtils, UserServiceGrpcIml userServiceGrpcIml) {
+      PaymentTransactionService paymentTransactionService, WalletService walletService,
+      TransactionService transactionService) {
     this.gson = gson;
     this.redisTemplate = redisTemplate;
-    this.jwtUtils = jwtUtils;
-    this.userServiceGrpcIml = userServiceGrpcIml;
+    this.paymentTransactionService = paymentTransactionService;
+    this.walletService = walletService;
+    this.transactionService = transactionService;
   }
 
   @Override
@@ -92,7 +102,7 @@ public class RechargeServiceIml implements RechargeService {
     }
 
     String orderType = depositMoneyRequest.getOrderType();
-    long amount = depositMoneyRequest.getAmount() * 100;
+    long amount = (long) (depositMoneyRequest.getAmount() * 100);
     String bankCode = depositMoneyRequest.getBankCode();
 
     String vnp_TxnRef = VNPayConfig.getRandomNumber(8);
@@ -172,22 +182,76 @@ public class RechargeServiceIml implements RechargeService {
     log.info("GET VNPAY URL REQUEST:\n{}-> SUCCESS:\n{}", gson.toJson(depositMoneyRequest),
         gson.toJson(response));
 
+    // Get authentication
+    UserResponseDto userResponseDto =
+        (UserResponseDto) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+    // Create request create payment transaction
+    PaymentTransactionDto paymentTransactionDto = PaymentTransactionDto.builder()
+        .vnpaySecureHash(vnp_SecureHash)
+        .userId(userResponseDto.getId())
+        .username(userResponseDto.getUsername())
+        .amount(depositMoneyRequest.getAmount())
+        .status(StatusTransaction.PENDING)
+        .type(TransactionType.IN)
+        .build();
+
+    paymentTransactionService.createTransaction(paymentTransactionDto);
     return response;
   }
 
   @Override
-  public BaseResponse<?> depositMoney(HttpServletRequest request) {
-    String jwt = jwtUtils.getJwtFromRequest(request);
-    String username = jwtUtils.getUsernameFromJWT(jwt);
-
-    FindUserResponse userResponse = userServiceGrpcIml.findUserByUsername(
-        FindUserByUsernameRequest.newBuilder()
-            .setUsername(username)
-            .build());
-
-    Transaction transaction = Transaction.builder()
-
+  public BaseResponse<?> depositMoney(String code, String secureHash) {
+    Optional<PaymentTransactionDto> paymentTransactionDto =
+        paymentTransactionService.findPaymentTransactionBySecureHash(secureHash);
+    if (paymentTransactionDto.isEmpty()) {
+      return BaseResponse.builder()
+          .responseInfo(ResponseInfo.builder()
+              .code(CodeConstant.INVALID_REQUEST_CODE)
+              .status(ResponseType.INVALID_REQUEST.name())
+              .message("Không tìm thấy giao dịch")
+              .build())
+          .build();
+    }
+    PaymentTransactionDto paymentTransaction =
+        paymentTransactionDto.get();
+    if (!code.equals("00")) {
+      paymentTransaction.setStatus(StatusTransaction.FAIL);
+      paymentTransactionService.updateTransaction(paymentTransaction);
+      return BaseResponse.builder()
+          .responseInfo(ResponseInfo.builder()
+              .code(CodeConstant.ERROR_CODE)
+              .status(ResponseType.ERROR.name())
+              .message("Giao dịch lỗi thực hiện không thành công")
+              .build())
+          .build();
+    }
+    paymentTransaction.setStatus(StatusTransaction.SUCCESS);
+    Optional<PaymentTransaction> paymentTransactionOptional =
+        paymentTransactionService.updateTransaction(paymentTransaction);
+    if (paymentTransactionOptional.isEmpty()) {
+      throw new BaseException();
+    }
+    walletService.increaseBalance(transactionService.createTransaction(
+        Transaction.builder()
+            .amount(paymentTransaction.getAmount())
+            .status(paymentTransaction.getStatus())
+            .paymentTransaction(paymentTransactionOptional.get())
+            .createdAt(paymentTransaction.getCreatedAt())
+            .description("Giao dịch nạp tiền")
+            .type(paymentTransactionOptional.get().getType())
+            .status(paymentTransactionOptional.get().getStatus())
+            .userId(paymentTransactionOptional.get().getUserId())
+            .username(paymentTransactionOptional.get().getUsername())
+            .build()
+    ));
+    return BaseResponse.builder()
+        .responseInfo(ResponseInfo.builder()
+            .code(CodeConstant.ERROR_CODE)
+            .status(ResponseType.ERROR.name())
+            .message("Giao dịch lỗi thực hiện không thành công")
+            .build())
+        .content(paymentTransactionService.updateTransaction(paymentTransaction).orElse(null))
         .build();
-    return null;
   }
 }

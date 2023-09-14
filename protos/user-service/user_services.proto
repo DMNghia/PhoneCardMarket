@@ -8,4 +8,5 @@ option java_package = "com.nghia.grpc.services.userService";
 service UserService {
   rpc findUserById(FindUserByIdRequest) returns (FindUserResponse) {};
   rpc findUserByUsername(FindUserByUsernameRequest) returns (FindUserResponse) {};
+  rpc updateUser(UpdateUserRequest) returns (UpdateUserResponse) {};
 }

@@ -42,3 +42,21 @@ message FindUserResponse {
   bool isLocked = 6;
   Role role = 7;
 }
+
+message UpdateUserRequest {
+  string username = 1;
+  string email = 2;
+  bool isEnable = 3;
+  bool isLocked = 4;
+  Role role = 7;
+}
+
+message UpdateUserResponse {
+  BaseResponse baseResponse = 1;
+  int32 id = 2;
+  string username = 3;
+  string email = 4;
+  bool isEnable = 5;
+  bool isLocked = 6;
+  Role role = 7;
+}

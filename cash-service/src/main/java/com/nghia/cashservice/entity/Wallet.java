@@ -30,7 +30,7 @@ public class Wallet {
   private Integer id;
   private Integer userId;
   private String username;
-  private Long balance;
+  private Double balance;
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private List<Transaction> transactions;
   @CreatedDate

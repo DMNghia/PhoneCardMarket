@@ -24,11 +24,13 @@ public final class UserServices {
   static {
     java.lang.String[] descriptorData = {
       "\n\023user_services.proto\032\023user_entities.pro" +
-      "to2\217\001\n\013UserService\0229\n\014findUserById\022\024.Fin" +
+      "to2\310\001\n\013UserService\0229\n\014findUserById\022\024.Fin" +
       "dUserByIdRequest\032\021.FindUserResponse\"\000\022E\n" +
       "\022findUserByUsername\022\032.FindUserByUsername" +
-      "Request\032\021.FindUserResponse\"\000B\'\n#com.nghi" +
-      "a.grpc.services.userServiceP\001b\006proto3"
+      "Request\032\021.FindUserResponse\"\000\0227\n\nupdateUs" +
+      "er\022\022.UpdateUserRequest\032\023.UpdateUserRespo" +
+      "nse\"\000B\'\n#com.nghia.grpc.services.userSer" +
+      "viceP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
