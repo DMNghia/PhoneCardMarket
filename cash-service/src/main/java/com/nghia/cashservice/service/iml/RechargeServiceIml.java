@@ -23,6 +23,7 @@ import com.nghia.cashservice.service.WalletService;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -199,6 +200,7 @@ public class RechargeServiceIml implements RechargeService {
         .amount(rechargeRequest.getAmount())
         .status(StatusTransaction.PENDING)
         .type(TransactionType.IN)
+        .createdAt(LocalDateTime.now())
         .build();
 
     paymentTransactionService.createTransaction(paymentTransactionDto);
@@ -229,7 +231,22 @@ public class RechargeServiceIml implements RechargeService {
               .build())
           .build();
     }
-    if (!request.getResponseCode().equals("00") || !request.getVnp_TransactionStatus().equals("00")) {
+
+    if (paymentTransaction.getCreatedAt().plusMinutes(15L).isBefore(LocalDateTime.now())) {
+      if (paymentTransaction.getStatus().equals(StatusTransaction.PENDING)) {
+        paymentTransaction.setStatus(StatusTransaction.SUCCESS);
+        paymentTransactionService.updateTransaction(paymentTransaction);
+      }
+      return BaseResponse.builder()
+          .responseInfo(ResponseInfo.builder()
+              .code(CodeConstant.INVALID_REQUEST_CODE)
+              .status(ResponseType.INVALID_REQUEST.name())
+              .message("Giao dịch đã hết hạn")
+              .build())
+          .build();
+    }
+    if (!request.getResponseCode().equals("00") || !request.getVnp_TransactionStatus()
+        .equals("00")) {
       paymentTransaction.setStatus(StatusTransaction.FAIL);
       paymentTransactionService.updateTransaction(paymentTransaction);
       return BaseResponse.builder()
@@ -261,9 +278,9 @@ public class RechargeServiceIml implements RechargeService {
     ));
     return BaseResponse.builder()
         .responseInfo(ResponseInfo.builder()
-            .code(CodeConstant.ERROR_CODE)
-            .status(ResponseType.ERROR.name())
-            .message("Giao dịch lỗi thực hiện không thành công")
+            .code(CodeConstant.SUCCESS_CODE)
+            .status(ResponseType.SUCCESS.name())
+            .message("Giao dịch lỗi thực hiện thành công")
             .build())
         .content(paymentTransactionService.updateTransaction(paymentTransaction).orElse(null))
         .build();

@@ -45,7 +45,7 @@ public class PaymentTransactionServiceIml implements PaymentTransactionService {
       log.info("FIND PAYMENT PAYMENT  REQUEST:\n{}\n-> FAIL CANNOT FIND", gson.toJson(request));
       return Optional.empty();
     }
-    return Optional.empty();
+    return Optional.ofNullable(modelMapper.map(resultOptional, PaymentTransactionDto.class));
   }
 
   @Override
@@ -53,6 +53,6 @@ public class PaymentTransactionServiceIml implements PaymentTransactionService {
       PaymentTransactionDto paymentTransactionDto) {
     PaymentTransaction paymentTransaction =
         paymentTransactionRepository.save(modelMapper.map(paymentTransactionDto, PaymentTransaction.class));
-    return Optional.ofNullable(paymentTransaction);
+    return Optional.of(paymentTransaction);
   }
 }
