@@ -35,34 +35,34 @@ public class UserServiceApplication {
     SpringApplication.run(UserServiceApplication.class, args);
   }
 
-//  @PostConstruct
-//  public void createSomeRecord() {
-//    if (roleRepository.findByName(RoleName.USER).isEmpty()) {
-//      roleRepository.save(Role.builder()
-//          .name(RoleName.USER)
-//          .build());
-//    }
-//    if (roleRepository.findByName(RoleName.ADMIN).isEmpty()) {
-//      roleRepository.save(Role.builder()
-//          .name(RoleName.ADMIN)
-//          .build());
-//    }
-//    if (roleRepository.findByName(RoleName.STAFF).isEmpty()) {
-//      roleRepository.save(Role.builder()
-//          .name(RoleName.STAFF)
-//          .build());
-//    }
-//    if (userService.findById(1).isEmpty()) {
-//      authService.signup(SignUpRequest.builder()
-//          .email("dmnghia1511@gmail.com")
-//          .username("sys_admin")
-//          .password("Admin123")
-//          .build());
-//      Optional<User> userOptional = userService.findById(1);
-//      userOptional.ifPresent(
-//          user -> user.setRole(roleRepository.findByName(RoleName.ADMIN).orElse(null)));
-//    }
-//  }
+  @PostConstruct
+  public void createSomeRecord() {
+    if (roleRepository.findByName(RoleName.USER).isEmpty()) {
+      roleRepository.save(Role.builder()
+          .name(RoleName.USER)
+          .build());
+    }
+    if (roleRepository.findByName(RoleName.ADMIN).isEmpty()) {
+      roleRepository.save(Role.builder()
+          .name(RoleName.ADMIN)
+          .build());
+    }
+    if (roleRepository.findByName(RoleName.STAFF).isEmpty()) {
+      roleRepository.save(Role.builder()
+          .name(RoleName.STAFF)
+          .build());
+    }
+    if (userService.findById(1).isEmpty()) {
+      authService.signup(SignUpRequest.builder()
+          .email("dmnghia1511@gmail.com")
+          .username("sys_admin")
+          .password("Admin123")
+          .build());
+      Optional<User> userOptional = userService.findById(1);
+      userOptional.ifPresent(
+          user -> user.setRole(roleRepository.findByName(RoleName.ADMIN).orElse(null)));
+    }
+  }
 
   @Bean
   NewTopic mail() {
