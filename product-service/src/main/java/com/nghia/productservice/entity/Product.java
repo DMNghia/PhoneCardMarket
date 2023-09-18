@@ -37,7 +37,7 @@ public class Product {
   private String name;
   private Double price;
 
-  @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
   @JoinColumn(name = "provider_id")
   private Provider provider;
 

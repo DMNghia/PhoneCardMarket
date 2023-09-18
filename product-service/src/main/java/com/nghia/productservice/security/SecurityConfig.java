@@ -10,7 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-  public final String[] WHITE_LIST = {"/api/provider/upload", "/upload"};
+  public final String[] WHITE_LIST = {"/api/provider/upload", "/upload", "/api/storage/**"};
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
