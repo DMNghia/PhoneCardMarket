@@ -1,5 +1,6 @@
 package com.nghia.productservice.entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -32,7 +33,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Storage {
+public class Storage implements Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
