@@ -31,7 +31,7 @@ import org.springframework.security.core.userdetails.UserDetails;
     @UniqueConstraint(name = "email_unique_constraint", columnNames = "email"),
     @UniqueConstraint(name = "username_unique_constraint", columnNames = "username")
 }, indexes = {
-    @Index(name = "idx_username", columnList = "username, entity")
+    @Index(name = "idx_username_email", columnList = "username, email")
 })
 @Data
 @AllArgsConstructor

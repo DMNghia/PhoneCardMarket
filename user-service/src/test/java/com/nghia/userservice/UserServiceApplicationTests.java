@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @SpringBootTest
 class UserServiceApplicationTests {
@@ -13,7 +14,8 @@ class UserServiceApplicationTests {
 	}
 
 	public static void main(String[] args) {
-		ObjectMapper objectMapper = new ObjectMapper();
+		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+		System.out.println(passwordEncoder.encode("Admin123"));
 	}
 
 }

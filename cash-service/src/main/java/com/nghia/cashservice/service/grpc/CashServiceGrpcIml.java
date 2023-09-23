@@ -76,7 +76,7 @@ public class CashServiceGrpcIml extends CashServiceImplBase {
             .setId(newWallet.get().getId())
             .setBalance(newWallet.get().getBalance())
             .build();
-        log.error("CREATE WALLET REQUEST - {} -> SUCCESS\n", gson.toJson(request),
+        log.info("CREATE WALLET REQUEST - {} -> SUCCESS\n", gson.toJson(request),
             gson.toJson(response));
         responseObserver.onNext(response);
         responseObserver.onCompleted();
